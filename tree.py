@@ -1,8 +1,9 @@
 import tkinter as tk
 from tkinter import simpledialog, messagebox, filedialog
 import pandas as pd
+from treelib import Tree
 
-class Node:
+class TreeNode:
     def __init__(self, attribute=None, value=None, condition=None, left=None, right=None, result=None, path=""):
         self.attribute = attribute
         self.value = value
@@ -18,29 +19,45 @@ class Node:
 class DecisionTree:
     def __init__(self):
         self.root = None
+        self.node_counter = 0
 
     def build_tree(self, gui):
-        self.root = self._build_tree_recursively(gui, "")
+        self.root = self._build_tree_recursively(gui, "", 0)
 
-    def _build_tree_recursively(self, gui, path):
-        current_path.set(path)  
-        gui.update_idletasks()  
-
+    def _build_tree_recursively(self, gui, path, num):
+        current_path.set(path)
+        gui.update_idletasks()
         attribute = simpledialog.askstring("Input", f"Enter attribute to split on (or 'result' to mark as leaf): ", parent=gui)
         if attribute == 'result':
             result = simpledialog.askstring("Input", "Enter result (Fraud/Not Fraud):", parent=gui)
-            return Node(result=result, path=path)
+            node_id = f"{attribute} {result} {self.node_counter}"
+            self.node_counter += 1
+            if path:
+                ls = list(path.split('->')[-1].split(' '))
+                op = ' '.join(ls[:-1]).strip()
+                treel.create_node(node_id, node_id, parent=op)
+            else:
+                treel.create_node(node_id, node_id)
+            return TreeNode(result=result, path=path)
 
-        value = simpledialog.askstring("Input", f"Enter value to compare for {attribute}: {path}", parent=gui)
-        condition = simpledialog.askstring("Input", f"Enter condition for {attribute} (choose from >=, <=, ==): {path}", parent=gui)
+        value = simpledialog.askstring("Input", f"Enter value to compare for {attribute}", parent=gui)
+        condition = simpledialog.askstring("Input", f"Enter condition for {attribute} (choose from >=, <=, ==):", parent=gui)
+        node_id = f"{attribute} {condition} {value} {self.node_counter}"
+        self.node_counter += 1
+        if path:
+            ls = list(path.split('->')[-1].split(' '))
+            op = ' '.join(ls[:-1]).strip()
+            treel.create_node(node_id, node_id, parent=op)
+        else:
+            treel.create_node(node_id, node_id)
 
         messagebox.showinfo("Building Tree", f"Building left subtree for {attribute} {condition} {value}")
-        left = self._build_tree_recursively(gui, path + f" -> {attribute} {condition} {value} (left)")
+        left = self._build_tree_recursively(gui, path + f" -> {node_id} (left)", num + 1)
 
         messagebox.showinfo("Building Tree", f"Building right subtree for {attribute} {condition} {value}")
-        right = self._build_tree_recursively(gui, path + f" -> {attribute} {condition} {value} (right)")
+        right = self._build_tree_recursively(gui, path + f" -> {node_id} (right)", num + 1)
 
-        return Node(attribute=attribute, value=value, condition=condition, left=left, right=right, path=path)
+        return TreeNode(attribute=attribute, value=value, condition=condition, left=left, right=right, path=path)
 
     def predict(self, data):
         return self._predict_recursively(self.root, data)
@@ -50,7 +67,7 @@ class DecisionTree:
             return node.result
 
         attribute_value = data[node.attribute]
-        if node.condition == "==" and type(attribute_value) is str and attribute_value == node.value:
+        if node.condition == "==" and attribute_value == node.value:
             return self._predict_recursively(node.left, data)
         elif node.condition == ">=" and attribute_value >= float(node.value):
             return self._predict_recursively(node.left, data)
@@ -90,7 +107,7 @@ def load_csv():
             df['Daily Credit Total'] = df.groupby('Trans Date')['Credit(Cr.) INR'].transform('sum')
 
             df['Transaction Sequence'] = df.groupby('Trans Date').cumcount() + 1
-            df['Transaction to Balance Ratio'] = df['Transaction Amount'] / df['Previous Balance INR'].replace(0, 1)  # Avoid division by zero
+            df['Transaction to Balance Ratio'] = df['Transaction Amount'] / df['Previous Balance INR'].replace(0, 1)
             df['Trans Date'] = pd.to_datetime(df['Trans Date'])
 
             df = df.sort_values(by=['Trans Date', 'Transaction Sequence'])
@@ -104,7 +121,7 @@ def save_csv(results):
     if file_path:
         try:
             results_df = pd.DataFrame(results)
-            df["results"]=results_df["prediction"]
+            df["results"] = results_df["prediction"]
             df.to_csv(file_path, index=False)
             messagebox.showinfo("File Saved", "CSV file saved successfully.")
         except Exception as e:
@@ -116,6 +133,8 @@ def build_tree_gui():
         return
     tree.build_tree(root)
     messagebox.showinfo("Tree Built", "The decision tree has been successfully built.")
+    # tree_struct.set(treel.show(stdout=False))
+    text_widget.insert(tk.END, treel.show(stdout=False))
 
 def predict_gui():
     if df.empty:
@@ -132,6 +151,8 @@ def predict_gui():
 
     save_csv(results)
 
+treel = Tree()
+
 root = tk.Tk()
 root.title("Decision Tree GUI")
 
@@ -140,11 +161,11 @@ df = pd.DataFrame()
 
 current_path = tk.StringVar()
 
-current_path_label = tk.Label(root, text="Current Path:")
-current_path_label.pack(pady=10)
-current_path_display = tk.Label(root, textvariable=current_path)
-current_path_display.pack(pady=10)
-
+# tree_struct = tk.StringVar()
+# tree_draw = tk.Label(root, textvariable=tree_struct)
+# tree_draw.pack(pady=10)
+text_widget=tk.Text(root)
+text_widget.pack()
 load_button = tk.Button(root, text="Load CSV File", command=load_csv)
 load_button.pack(pady=10)
 

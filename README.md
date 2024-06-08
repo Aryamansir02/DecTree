@@ -8,6 +8,7 @@ This application provides a graphical user interface (GUI) for building and usin
 - **Build Decision Tree**: Interactively construct a decision tree.
 - **Predict Outcomes**: Use the decision tree to predict outcomes for transactions.
 - **Save Results**: Save prediction results to a CSV file.
+- **View Decision Tree**: View the decision tree as a graph
 
 ## Dependencies
 
