@@ -38,6 +38,9 @@ class DecisionTree:
                 treel.create_node(node_id, node_id, parent=op)
             else:
                 treel.create_node(node_id, node_id)
+            text_widget.delete(1.0,tk.END)
+            text_widget.insert(tk.END, treel.show(stdout=False))
+
             return TreeNode(result=result, path=path)
 
         value = simpledialog.askstring("Input", f"Enter value to compare for {attribute}", parent=gui)
@@ -50,6 +53,8 @@ class DecisionTree:
             treel.create_node(node_id, node_id, parent=op)
         else:
             treel.create_node(node_id, node_id)
+        text_widget.delete(1.0,tk.END)
+        text_widget.insert(tk.END, treel.show(stdout=False))
 
         messagebox.showinfo("Building Tree", f"Building left subtree for {attribute} {condition} {value}")
         left = self._build_tree_recursively(gui, path + f" -> {node_id} (left)", num + 1)
@@ -134,7 +139,7 @@ def build_tree_gui():
     tree.build_tree(root)
     messagebox.showinfo("Tree Built", "The decision tree has been successfully built.")
     # tree_struct.set(treel.show(stdout=False))
-    text_widget.insert(tk.END, treel.show(stdout=False))
+    # text_widget.insert(tk.END, treel.show(stdout=False))
 
 def predict_gui():
     if df.empty:

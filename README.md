@@ -49,5 +49,5 @@ Ensure to build the decision tree before predicting.
 
 Working On:
 
-- Tree display
 - Dropdowns for simpledialog boxes
+- Saving and Transfering Decision Trees
